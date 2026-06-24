@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ЕГЭ-ХАБ · Русский + English · НИУ ВШЭ</title>
+  <meta name="description" content="Объединённый хаб подготовки к ЕГЭ: русский язык (27 заданий) и английский язык (B1+→B2). Интерактивные тренажёры, автопроверка, домашние задания. Цель — НИУ ВШЭ." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/hub.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='22'%3E🎓%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+  <div class="bg-fx">
+    <div class="orb o1"></div>
+    <div class="orb o2"></div>
+    <div class="orb o3"></div>
+  </div>
+  <canvas id="bg-c"></canvas>
+
+  <header class="nav" id="nav">
+    <a href="index.html" class="brand">
+      <span class="brand-mark">ЕГЭ</span>
+      <span class="brand-text">ХАБ <small>НИУ ВШЭ</small></span>
+    </a>
+    <nav class="nav-links">
+      <a href="russian/index.html">Русский</a>
+      <a href="english/index.html">English</a>
+      <a href="#about">О проекте</a>
+    </nav>
+    <button class="burger" id="burger" aria-label="Меню"><span></span><span></span><span></span></button>
+  </header>
+
+  <section class="hero" id="top">
+    <div class="badge"><span class="dot"></span> Обновлено · ЕГЭ 2026</div>
+    <h1>Готовься к ЕГЭ<br><span class="grad">умно и красиво</span></h1>
+    <p class="sub">Два предмета — одна платформа. Разбери каждое задание по теории, потренируйся на реальных примерах ФИПИ, отслеживай прогресс.</p>
+    <div class="hero-cta">
+      <a href="russian/index.html" class="btn btn-ru">Русский язык →</a>
+      <a href="english/index.html" class="btn btn-en">English →</a>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><div class="num" data-to="27">0</div><div class="lbl">заданий по русскому</div></div>
+      <div class="stat"><div class="num" data-to="38">0</div><div class="lbl">заданий по английскому</div></div>
+      <div class="stat"><div class="num" data-to="300" data-suffix="+">0</div><div class="lbl">примеров с автопроверкой</div></div>
+    </div>
+  </section>
+
+  <section class="subjects">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="kicker">Выбери предмет</div>
+        <h2>Два экзамена — под полным контролем</h2>
+      </div>
+      <div class="subject-cards">
+
+        <a href="russian/index.html" class="subj-card ru-card reveal">
+          <div class="subj-icon">Я</div>
+          <div class="subj-info">
+            <h3>Русский язык</h3>
+            <p>Все 27 заданий с теорией и практикой, тренажёр ударений, тест по паронимам и орфографии, шаблон сочинения, домашние задания с прогрессом.</p>
+            <ul class="feat-list">
+              <li>27 заданий · теория + практика</li>
+              <li>Орфоэпический минимум ФИПИ (100+ слов)</li>
+              <li>Список паронимов + тренажёр</li>
+              <li>Шаблон сочинения (задание 27)</li>
+              <li>Домашние задания по темам</li>
+            </ul>
+            <span class="go-btn">Открыть →</span>
+          </div>
+        </a>
+
+        <a href="english/index.html" class="subj-card en-card reveal">
+          <div class="subj-icon">E</div>
+          <div class="subj-info">
+            <h3>English · ЕГЭ</h3>
+            <p>Все разделы: грамматика, словообразование, лексика, чтение, аудирование, письмо (email + essay), говорение. Уровень B1+ → B2.</p>
+            <ul class="feat-list">
+              <li>Грамматика · задания 12–18</li>
+              <li>Словообразование · задания 19–25</li>
+              <li>Лексика и сочетаемость · 26–31</li>
+              <li>Письмо: email + opinion essay</li>
+              <li>Говорение: 4 задания с фразами</li>
+            </ul>
+            <span class="go-btn">Open →</span>
+          </div>
+        </a>
+
+      </div>
+    </div>
+  </section>
+
+  <section class="features" id="about">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <div class="kicker">Почему этот хаб</div>
+        <h2>Всё, что нужно для 90+ баллов</h2>
+      </div>
+      <div class="feat-grid">
+        <div class="feat reveal">
+          <div class="feat-ico">⚡</div>
+          <h3>Мгновенная проверка</h3>
+          <p>Вводишь ответ — сразу видишь результат с объяснением. Как на реальном экзамене, только быстрее.</p>
+        </div>
+        <div class="feat reveal">
+          <div class="feat-ico">📊</div>
+          <h3>Прогресс в браузере</h3>
+          <p>Отмечай выполненные домашние задания. Прогресс хранится в localStorage — ничего не потеряется.</p>
+        </div>
+        <div class="feat reveal">
+          <div class="feat-ico">🎯</div>
+          <h3>Формат ФИПИ</h3>
+          <p>Все задания в точном формате ЕГЭ: как в открытом банке ФИПИ и на Решу ЕГЭ.</p>
+        </div>
+        <div class="feat reveal">
+          <div class="feat-ico">📱</div>
+          <h3>Мобильная версия</h3>
+          <p>Полноценная работа на телефоне. Тренируйся в очереди, в транспорте, где угодно.</p>
+        </div>
+        <div class="feat reveal">
+          <div class="feat-ico">🔗</div>
+          <h3>Ссылки на источники</h3>
+          <p>Прямые ссылки на ФИПИ, Решу ЕГЭ, кодификаторы и демоверсии 2026 года.</p>
+        </div>
+        <div class="feat reveal">
+          <div class="feat-ico">🎓</div>
+          <h3>Цель — НИУ ВШЭ</h3>
+          <p>Платформа заточена под высокобалльный результат и поступление в Высшую школу экономики.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="brand">
+      <span class="brand-mark sm">ЕГЭ</span>
+      <span>ХАБ · НИУ ВШЭ</span>
+    </div>
+    <p>Сделано с <span style="color:var(--pink)">♥</span> для поступления в НИУ ВШЭ · <span id="yr"></span></p>
+    <p class="muted">Материалы по открытым источникам ФИПИ, «Решу ЕГЭ». Не аффилировано с НИУ ВШЭ.</p>
+    <div class="foot-links">
+      <a href="russian/index.html">Русский язык</a>
+      <a href="english/index.html">English</a>
+      <a href="https://fipi.ru/ege" target="_blank" rel="noopener">ФИПИ</a>
+      <a href="https://rus-ege.sdamgia.ru/" target="_blank" rel="noopener">Решу ЕГЭ (рус)</a>
+      <a href="https://en-ege.sdamgia.ru/" target="_blank" rel="noopener">Решу ЕГЭ (eng)</a>
+    </div>
+  </footer>
+
+  <script>
+    /* counter animation */
+    document.getElementById('yr').textContent = new Date().getFullYear();
+    const io = new IntersectionObserver(es => es.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
+    }), { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+    function animCount(el) {
+      const to = +el.dataset.to, suf = el.dataset.suffix || '';
+      let s = 0; const dur = 1400, step = 16;
+      const t = setInterval(() => {
+        s = Math.min(s + dur / step, dur);
+        el.textContent = Math.round(to * (s / dur)) + (s >= dur ? suf : '');
+        if (s >= dur) clearInterval(t);
+      }, step);
+    }
+    const cio = new IntersectionObserver(es => es.forEach(e => {
+      if (e.isIntersecting) { animCount(e.target); cio.unobserve(e.target); }
+    }));
+    document.querySelectorAll('[data-to]').forEach(el => cio.observe(el));
+
+    /* particles */
+    (function particles() {
+      const c = document.getElementById('bg-c'), x = c.getContext('2d');
+      let w, h, pts = [];
+      function size() {
+        w = c.width = innerWidth; h = c.height = innerHeight;
+        const n = Math.min(60, Math.floor(w * h / 20000));
+        pts = Array.from({ length: n }, () => ({
+          x: Math.random() * w, y: Math.random() * h,
+          vx: (Math.random() - .5) * .3, vy: (Math.random() - .5) * .3,
+          r: Math.random() * 1.5 + .5
+        }));
+      }
+      size(); addEventListener('resize', size);
+      function loop() {
+        x.clearRect(0, 0, w, h);
+        for (const p of pts) {
+          p.x += p.vx; p.y += p.vy;
+          if (p.x < 0 || p.x > w) p.vx *= -1;
+          if (p.y < 0 || p.y > h) p.vy *= -1;
+          x.beginPath(); x.arc(p.x, p.y, p.r, 0, 7);
+          x.fillStyle = 'rgba(192,132,252,.5)'; x.fill();
+        }
+        requestAnimationFrame(loop);
+      } loop();
+    })();
+
+    /* burger */
+    document.getElementById('burger').onclick = () =>
+      document.querySelector('.nav-links').classList.toggle('open');
+    window.addEventListener('scroll', () => {
+      document.getElementById('nav').classList.toggle('scrolled', scrollY > 40);
+    });
+  </script>
+</body>
+</html>
