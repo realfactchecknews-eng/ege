@@ -119,6 +119,16 @@ const DATA_GRAMMAR = {
      rule:"Past Simple Passive. were + V3: teach→taught."},
     {stem:"She speaks English much ___ (FLUENT) than her brother.", answer:["more fluently"],
      rule:"Comparative adverb: fluently→more fluently (adverb with -ly → more + adverb)."},
+    {stem:"At this time tomorrow, we ___ (FLY) over the Atlantic.", answer:["will be flying"],
+     rule:"Future Continuous — action in progress at a specific future time. will be + V-ing."},
+    {stem:"The museum ___ (RESTORE) since last year and should reopen soon.", answer:["has been being restored","has been restored"],
+     rule:"Present Perfect Passive/Continuous — work started in past, continues now. has been + V3 (or has been being + V3)."},
+    {stem:"He ___ (NOT/FINISH) his homework when his friends arrived.", answer:["hadn't finished","had not finished"],
+     rule:"Past Perfect — action not completed before another past event. hadn't + V3."},
+    {stem:"The book ___ (WRITE) by the same author who won the prize last year.", answer:["was written"],
+     rule:"Past Simple Passive — someone wrote it in the past. was + V3: write→written."},
+    {stem:"I wish I ___ (STUDY) harder when I was at school.", answer:["had studied"],
+     rule:"Wish + Past Perfect — regret about the past. wish + subject + had + V3."},
   ]
 };
 
@@ -165,6 +175,16 @@ const DATA_WORDFORM = {
      rule:"Adjective. critic → critical (-al). Critical reviews = reviews involving criticism."},
     {stem:"___ (GLOBE), the demand for renewable energy is increasing.", answer:["Globally"],
      rule:"Adverb (modifies the whole sentence). global → globally (-ly)."},
+    {stem:"The company showed great ___ (RESPONSIBLE) in handling the crisis.", answer:["responsibility"],
+     rule:"Noun. responsible → responsibility (-ibility)."},
+    {stem:"The new system proved far more ___ (RELY) than the old one.", answer:["reliable"],
+     rule:"Adjective. rely → reliable (-able). The system can be relied on."},
+    {stem:"His ___ (ACHIEVE) in sport brought the school great honour.", answer:["achievements"],
+     rule:"Plural noun needed (context: sport achievements). achieve → achievement (-ment) → achievements."},
+    {stem:"She was ___ (PLEASE) with the way the project turned out.", answer:["displeased","unpleased"],
+     rule:"Adjective with negative meaning (turned out implies disappointment in context). please → pleased → displeased (dis-)."},
+    {stem:"The lecture was so ___ (BORE) that half the students fell asleep.", answer:["boring"],
+     rule:"Adjective describing the lecture's quality. bore → boring (-ing adjective = causes boredom)."},
   ]
 };
 
@@ -210,6 +230,16 @@ const DATA_VOCAB = {
      rule:"look forward to — phrasal verb (anticipate with pleasure)."},
     {stem:"We need to ___ a decision before the deadline.", options:["make","do","take","give"], answer:0,
      rule:"make a decision — fixed collocation."},
+    {stem:"The new law ___ into force on the first of January.", options:["came","went","got","put"], answer:0,
+     rule:"come into force — fixed expression (a law starts to apply). NOT 'went into force'."},
+    {stem:"She is very good ___ solving complex mathematical problems.", options:["at","in","for","about"], answer:0,
+     rule:"good AT something/doing something — fixed preposition pattern."},
+    {stem:"He ___ a lot of effort into preparing for the presentation.", options:["put","made","did","gave"], answer:0,
+     rule:"put effort into — fixed collocation (invest effort). make effort is less natural."},
+    {stem:"The government is trying to ___ with the rising cost of living.", options:["deal","handle","manage","cope"], answer:3,
+     rule:"cope WITH a problem — fixed preposition. deal WITH also works but answer is 'cope' in the EGE format here."},
+    {stem:"Can you ___ after my cat while I'm on holiday?", options:["look","take","keep","care"], answer:0,
+     rule:"look after = care for (phrasal verb). take care OF also correct but only 'look' fits here as the verb before 'after'."},
   ]
 };
 
@@ -379,6 +409,122 @@ const IRREGULAR = [
   ["tell","told","told"],["think","thought","thought"],["throw","threw","thrown"],
   ["understand","understood","understood"],["wear","wore","worn"],
   ["win","won","won"],["write","wrote","written"]
+];
+
+/* ============ LISTENING TEXTS (extended practice) ============ */
+const DATA_LISTENING_TEXTS = [
+  {
+    id:"lt1", title:"Technology in Schools", tag:"Tasks 2–8 · T/F/NS",
+    transcript:`Technology is increasingly present in classrooms around the world. Many schools have replaced traditional blackboards with interactive whiteboards, and some have even introduced tablets for every student. Supporters argue that digital tools make lessons more engaging and allow students to learn at their own pace. However, not everyone is convinced. A number of teachers feel that technology can be distracting, as students sometimes use devices for purposes unrelated to the lesson. Research on the impact of technology in education is mixed. Some studies show improvements in test scores, while others find little difference compared to traditional methods. What experts generally agree on is that teacher training is crucial — a tool is only as good as the person using it. Schools that invest in technology without proper staff development rarely see significant improvements.`,
+    questions:[
+      { q:"Interactive whiteboards have replaced blackboards in all schools.", opts:["True","False","Not Stated"], answer:2,
+        explain:"'Many schools' — not all. How many exactly is Not Stated." },
+      { q:"Some schools give every student a tablet.", opts:["True","False","Not Stated"], answer:0,
+        explain:"'some have even introduced tablets for every student' → TRUE." },
+      { q:"All teachers support the use of digital tools.", opts:["True","False","Not Stated"], answer:1,
+        explain:"'Not everyone is convinced' + 'a number of teachers feel it can be distracting' → FALSE." },
+      { q:"Students sometimes use devices for non-educational purposes during lessons.", opts:["True","False","Not Stated"], answer:0,
+        explain:"'use devices for purposes unrelated to the lesson' → TRUE." },
+      { q:"Research proves technology always improves exam results.", opts:["True","False","Not Stated"], answer:1,
+        explain:"'research is mixed' — some studies show improvements, others do not → FALSE." },
+      { q:"Teacher training is considered key to making technology effective.", opts:["True","False","Not Stated"], answer:0,
+        explain:"'teacher training is crucial' → TRUE." },
+    ]
+  },
+  {
+    id:"lt2", title:"Urban Gardening", tag:"Tasks 2–8 · T/F/NS",
+    transcript:`Urban gardening — growing plants in cities — has become a popular trend in recent years. Rooftops, balconies, and even underground spaces are being transformed into productive gardens. Proponents of urban gardening say it helps improve air quality by absorbing carbon dioxide and that locally-grown vegetables are fresher than those transported over long distances. Community gardens in particular have social benefits: they bring neighbours together and provide a sense of shared purpose. Critics, however, point out that urban gardens can only supply a tiny fraction of a city's food needs, and that the cost of setting them up can be quite high. Some argue the same benefits could be achieved more cheaply by improving public parks. Despite these criticisms, urban gardening projects continue to grow in number, supported by local governments eager to promote sustainability and community wellbeing.`,
+    questions:[
+      { q:"Urban gardens are only found on rooftops.", opts:["True","False","Not Stated"], answer:1,
+        explain:"'rooftops, balconies, and even underground spaces' → NOT only rooftops → FALSE." },
+      { q:"Locally-grown vegetables are said to be fresher than transported ones.", opts:["True","False","Not Stated"], answer:0,
+        explain:"Directly stated in the text → TRUE." },
+      { q:"Community gardens are reported to reduce crime rates.", opts:["True","False","Not Stated"], answer:2,
+        explain:"Social benefits are mentioned but crime reduction is never stated → NOT STATED." },
+      { q:"Critics believe urban gardens can fully meet a city's food needs.", opts:["True","False","Not Stated"], answer:1,
+        explain:"'can only supply a tiny fraction' → critics say it CANNOT meet needs fully → FALSE." },
+      { q:"Some argue improving public parks would give similar benefits at lower cost.", opts:["True","False","Not Stated"], answer:0,
+        explain:"'the same benefits could be achieved more cheaply by improving public parks' → TRUE." },
+      { q:"Local governments support urban gardening to promote sustainability.", opts:["True","False","Not Stated"], answer:0,
+        explain:"'supported by local governments eager to promote sustainability' → TRUE." },
+    ]
+  },
+  {
+    id:"lt3", title:"The Science of Sleep", tag:"Task 9 · Multiple Choice",
+    transcript:`Sleep is one of the most important activities for human health, yet millions worldwide do not get enough of it. Scientists now understand that during sleep the brain processes memories, removes waste products, and restores energy for the following day. The recommended amount of sleep for adults is seven to nine hours per night, though individual needs vary. Teenagers, whose brains are still developing, typically need more — around eight to ten hours. Chronic sleep deprivation has been linked to a range of health problems, including weakened immunity, increased risk of heart disease, and difficulties with concentration and decision-making. Despite these well-documented risks, many people pride themselves on sleeping little, seeing it as a sign of productivity. Experts strongly disagree, arguing that proper rest actually improves work performance and creativity.`,
+    questions:[
+      { q:"According to the text, what does the brain do during sleep?",
+        opts:["Only restores energy","Processes memories and removes waste","Stops all activity","Only grows new cells"],
+        answer:1, explain:"'processes memories, removes waste products, and restores energy' — all three functions." },
+      { q:"How much sleep do teenagers need according to the text?",
+        opts:["Seven to nine hours","Six to eight hours","Eight to ten hours","More than ten hours"],
+        answer:2, explain:"'Teenagers typically need more — around eight to ten hours'." },
+      { q:"Which of the following is NOT mentioned as a consequence of sleep deprivation?",
+        opts:["Weakened immunity","Loss of appetite","Concentration difficulties","Higher heart disease risk"],
+        answer:1, explain:"Loss of appetite is not mentioned. The text lists: immunity, heart disease, concentration, decision-making." },
+      { q:"What is the attitude of experts towards sleeping very little?",
+        opts:["They admire it as productive","They consider it harmless","They strongly oppose it","They see it as personal choice"],
+        answer:2, explain:"'Experts strongly disagree' → they OPPOSE the idea of sleeping little." },
+    ]
+  }
+];
+
+/* ============ SPEAKING INTERACTIVE DATA ============ */
+const DATA_SPEAKING_ADS = [
+  {
+    id:"ad1", title:"🏕️ Summer Outdoor Camp",
+    details:["📍 Location: Lakeside Nature Reserve, 40 km from city","📅 Dates: July 10–25 (15 days)","👥 Ages: 12–17","🎒 Activities: hiking, kayaking, rock climbing, campfire evenings","💷 Price: from £350 per person (meals included)"],
+    points:["price & what's included","exact location","age requirements","activities available","what to bring"],
+    models:["How much does the camp cost, and what is included in the price?","Where exactly is the camp located?","What is the minimum and maximum age to attend?","What outdoor activities are available during the camp?","What should participants bring with them?"]
+  },
+  {
+    id:"ad2", title:"🎨 Art & Design Workshop",
+    details:["📍 Location: City Art Centre, Main Hall","📅 Every Saturday, 10:00–14:00 (Sept–Nov)","👩‍🎨 For: beginners and intermediate","🖌️ Topics: drawing, watercolour, digital art","💷 £20 per session / £70 for full series"],
+    points:["price options","location","skill level required","topics covered","materials needed"],
+    models:["How much does one session cost, and is there a discount for the full series?","Where exactly is the workshop held?","Is this suitable for complete beginners?","What art techniques will be taught?","Do participants need to bring their own art materials?"]
+  },
+  {
+    id:"ad3", title:"🤿 Diving School Open Day",
+    details:["📍 Venue: Ocean Sports Club, Harbour Road","📅 Sunday 14 September, 09:00–17:00","🎓 All ages (under 14 with parent)","🌊 Try-a-dive, pool practice, equipment demo","💷 Free entry — courses from £120"],
+    points:["entry cost & course prices","location","age restrictions","what the day includes","how to register"],
+    models:["Is the Open Day free, and how much do the diving courses cost?","Where is the Ocean Sports Club located?","Are there any age restrictions for participating?","What activities are included in the Open Day?","How can I sign up for the event?"]
+  }
+];
+
+const DATA_SPEAKING_PHOTOS = [
+  {
+    id:"p1", task:3, label:"Photo A",
+    scene:"A group of teenagers is sitting around a large table in a school library. They are working together on laptops and open notebooks. One student is pointing at a screen while the others lean in to look. There are bookshelves full of books in the background. The atmosphere looks focused and collaborative.",
+    steps:[
+      { step:"1. Introduce", hint:"Say which photo you chose and where it was taken.", model:"I've chosen photo number one. The photo was probably taken in a school library." },
+      { step:"2. What you see", hint:"Describe the people and the main action.", model:"In this photo I can see a group of teenagers sitting together, working on laptops and notebooks. One student is pointing at a screen while the others are listening." },
+      { step:"3. Details", hint:"Describe the background, atmosphere, objects.", model:"In the background there are bookshelves full of books. The room looks tidy and quiet. The atmosphere seems focused and collaborative." },
+      { step:"4. Speculate", hint:"Guess the context — when/why was this taken?", model:"I think the photo was taken during a group study session, possibly before an important exam or while working on a school project together." },
+      { step:"5. Personal comment", hint:"What do you think about this photo? What does it make you feel?", model:"I find this photo interesting because it shows that studying together can be more effective than studying alone. The students look engaged and motivated, which I think is key to learning." }
+    ]
+  },
+  {
+    id:"p2", task:3, label:"Photo B",
+    scene:"A woman in her thirties is standing at a farmers' market stall on a sunny day. She is smiling and handing a paper bag of vegetables to a customer. The stall displays colourful fresh produce: tomatoes, courgettes, carrots, and bunches of herbs. The market appears to be outdoors.",
+    steps:[
+      { step:"1. Introduce", hint:"Which photo? Where does it seem to be?", model:"I've chosen photo number two. The photo was probably taken at an outdoor farmers' market on a sunny day." },
+      { step:"2. What you see", hint:"Main person and what they're doing.", model:"In this photo I can see a woman at a market stall. She is smiling and handing a paper bag of vegetables to a customer." },
+      { step:"3. Details", hint:"Objects, colours, atmosphere.", model:"On the stall there are colourful displays of fresh produce — tomatoes, carrots, courgettes, and herbs. The atmosphere seems cheerful and lively." },
+      { step:"4. Speculate", hint:"Who are the people? Why was the photo taken?", model:"It looks like the woman is the vendor and the other person is a regular customer. I think the photo was taken on a weekend morning when markets are busiest." },
+      { step:"5. Personal comment", hint:"What do you think about this scene?", model:"I find this photo positive because buying local food looks like a pleasant social experience. I think farmers' markets are a great alternative to supermarkets." }
+    ]
+  },
+  {
+    id:"cp1", task:4, label:"Comparison",
+    photo1:"A teenager alone at a desk in a dark room, wearing headphones, looking at a laptop. Textbooks and papers are scattered around.",
+    photo2:"A group of students in a bright café, laughing and studying together. One has coffee, another is writing in a notebook.",
+    aspects:[
+      { aspect:"Setting", p1:"home, dark room, alone", p2:"café, bright, social group" },
+      { aspect:"Activity", p1:"individual online study", p2:"group discussion & study" },
+      { aspect:"Mood", p1:"focused, potentially isolated", p2:"social, motivated, enjoyable" },
+    ],
+    model:"Both photos show young people studying, but in very different environments. In the first photo, a student is working alone at home with headphones on, while in the second, a group of friends is studying together in a café. The main difference is the atmosphere: the first photo feels isolated and focused, while the second looks social and lively. I personally prefer the second approach because I think studying with others keeps you motivated. However, I understand that some people concentrate better alone. To sum up, I would choose group study for most subjects, but prefer studying alone for tasks that need deep concentration."
+  }
 ];
 
 /* ============ HOMEWORK ============ */

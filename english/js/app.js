@@ -64,7 +64,7 @@ const NAV_ITEMS = [
   ['#/', 'Home'], ['#/listening', 'Listening'], ['#/reading', 'Reading'],
   ['#/grammar', 'Grammar'], ['#/wordform', 'Word Form.'], ['#/vocab', 'Vocabulary'],
   ['#/writing', 'Writing'], ['#/speaking', 'Speaking'], ['#/irregular', 'Verbs'],
-  ['#/homework', 'Homework']
+  ['#/timer', 'Timer'], ['#/homework', 'Homework']
 ];
 function buildNav() {
   const h = document.getElementById('nav-links');
@@ -269,31 +269,66 @@ window.checkChoice2 = (key, i, oi, answer, rule, total) => {
 /* ---- LISTENING ---- */
 function viewListening() {
   const theory = DATA_LISTENING.theory.map(t => `<li>${t}</li>`).join('');
-  const items = DATA_LISTENING.practice.map((p, i) => {
+  const stratItems = DATA_LISTENING.practice.map((p, i) => {
     const opts = p.opts.map((o, oi) =>
       `<button class="opt" onclick="checkGenChoice('listening',${i},${oi},${p.answer},'${p.explain.replace(/'/g,"\\'")}',${DATA_LISTENING.practice.length})">${o}</button>`
     ).join('');
     return `<div class="ex-card reveal" id="lc_${i}">
-      <div class="ex-num">Example ${i + 1}</div>
+      <div class="ex-num">Strategy ${i + 1}</div>
       <div class="ex-stem">${p.q}</div>
       <div class="opts">${opts}</div>
       <div class="explain" id="lexp_${i}">${p.explain}</div>
     </div>`;
   }).join('');
+
+  const textBlocks = DATA_LISTENING_TEXTS.map((txt, ti) => {
+    const qItems = txt.questions.map((q, qi) => {
+      const opts = q.opts.map((o, oi) =>
+        `<button class="opt" onclick="checkListText(${ti},${qi},${oi},${q.answer},'${q.explain.replace(/'/g,"\\'")}',${txt.questions.length})">${o}</button>`
+      ).join('');
+      return `<div class="ex-card reveal" id="lt_${ti}_${qi}">
+        <div class="ex-num">Q${qi + 1}</div>
+        <div class="ex-stem">${q.q}</div>
+        <div class="opts">${opts}</div>
+        <div class="explain" id="ltexp_${ti}_${qi}">${q.explain}</div>
+      </div>`;
+    }).join('');
+    return `<div class="theory-block reveal" style="margin-top:28px">
+      <h3>📝 Text ${ti + 1}: ${txt.title} <span style="font-size:.8rem;font-weight:400;color:var(--muted)">${txt.tag}</span></h3>
+      <div class="listen-transcript">${txt.transcript}</div>
+    </div>
+    <div class="pb-head reveal" style="margin-top:16px"><h3>Questions</h3></div>
+    ${qItems}`;
+  }).join('');
+
   return `<div class="view-wrap">
     <div class="view-header">
       <button class="back" onclick="navigate('#/')">← Back</button>
       <span class="kicker">${DATA_LISTENING.tag}</span>
-      <h2>Listening Strategies</h2>
+      <h2>Listening</h2>
       <p>${DATA_LISTENING.desc}</p>
     </div>
     <div class="view-body">
       <div class="theory-block reveal"><h3>🎧 Strategies</h3><ul>${theory}</ul></div>
-      <div class="pb-head reveal"><h3>Practice</h3></div>
-      ${items}
+      <div class="pb-head reveal" style="margin-top:24px"><h3>Strategy practice</h3></div>
+      ${stratItems}
+      <div class="sec-divider reveal"><span>Extended Texts — 3 full passages</span></div>
+      ${textBlocks}
     </div>
   </div>`;
 }
+
+window.checkListText = (ti, qi, oi, answer, explain, total) => {
+  const card = document.getElementById(`lt_${ti}_${qi}`);
+  if (!card || card.classList.contains('correct') || card.classList.contains('wrong')) return;
+  const opts = card.querySelectorAll('.opt');
+  opts.forEach(b => b.disabled = true);
+  opts[answer].classList.add('show-correct');
+  opts[oi].classList.add(oi === answer ? 'sel-correct' : 'sel-wrong');
+  card.classList.add(oi === answer ? 'correct' : 'wrong');
+  document.getElementById(`ltexp_${ti}_${qi}`).classList.add('show');
+  toast(oi === answer ? 'Correct! ✓' : 'Incorrect.');
+};
 
 window.checkGenChoice = (section, i, oi, answer, explain, total) => {
   const card = document.getElementById(`lc_${i}`);
@@ -415,27 +450,152 @@ function viewWriting() {
 }
 
 /* ---- SPEAKING ---- */
+let speakMode = 'theory';
+let speakAdIdx = 0;
+let speakPhotoIdx = 0;
+
 function viewSpeaking() {
-  const tasks = DATA_SPEAKING.tasks.map(t => {
-    const tips = t.tips.map(tip => `<li>${tip}</li>`).join('');
-    const phrases = t.phrases ? `<div class="phrases" style="margin-top:12px">${t.phrases.map(p => `<span class="phrase">${p}</span>`).join('')}</div>` : '';
-    return `<div class="theory-block reveal">
-      <h3>🎙️ ${t.num}: ${t.title}</h3>
-      <p style="margin-bottom:12px">${t.desc}</p>
-      <ul>${tips}</ul>
-      ${phrases}
-    </div>`;
-  }).join('');
   return `<div class="view-wrap">
     <div class="view-header">
       <button class="back" onclick="navigate('#/')">← Back</button>
       <span class="kicker">${DATA_SPEAKING.tag}</span>
       <h2>Speaking</h2>
-      <p>4 oral tasks in the EGE. Preparation time, speaking time, and useful phrases for each.</p>
+      <p>4 oral tasks. Switch between theory and interactive practice.</p>
     </div>
-    <div class="view-body">${tasks}</div>
+    <div class="view-body">
+      <div class="speak-mode-tabs">
+        <button class="speak-mode-btn ${speakMode==='theory'?'active':''}" onclick="setSpeakMode('theory')">📖 Theory & Phrases</button>
+        <button class="speak-mode-btn ${speakMode==='task2'?'active':''}" onclick="setSpeakMode('task2')">❓ Task 2: Ad Questions</button>
+        <button class="speak-mode-btn ${speakMode==='task3'?'active':''}" onclick="setSpeakMode('task3')">🖼️ Task 3: Photo</button>
+        <button class="speak-mode-btn ${speakMode==='task4'?'active':''}" onclick="setSpeakMode('task4')">🔀 Task 4: Compare</button>
+      </div>
+      <div id="speak-content">${renderSpeakContent()}</div>
+    </div>
   </div>`;
 }
+
+function renderSpeakContent() {
+  if (speakMode === 'theory') return renderSpeakTheory();
+  if (speakMode === 'task2') return renderSpeakTask2();
+  if (speakMode === 'task3') return renderSpeakTask3();
+  if (speakMode === 'task4') return renderSpeakTask4();
+  return '';
+}
+
+function renderSpeakTheory() {
+  return DATA_SPEAKING.tasks.map(t => {
+    const tips = t.tips.map(tip => `<li>${tip}</li>`).join('');
+    const phrases = t.phrases ? `<div class="phrases" style="margin-top:12px">${t.phrases.map(p => `<span class="phrase">${p}</span>`).join('')}</div>` : '';
+    return `<div class="theory-block reveal">
+      <h3>🎙️ ${t.num}: ${t.title}</h3>
+      <div class="speak-badges" style="margin-bottom:12px">${t.desc}</div>
+      <ul>${tips}</ul>${phrases}
+    </div>`;
+  }).join('');
+}
+
+function renderSpeakTask2() {
+  const ad = DATA_SPEAKING_ADS[speakAdIdx];
+  const details = ad.details.map(d => `<div class="speak-ad-detail">${d}</div>`).join('');
+  const pointsList = ad.points.map((p, i) => `<div class="speak-point-row">
+    <span class="speak-point-num">${i+1}.</span>
+    <span class="speak-point-ask">Ask about: <em>${p}</em></span>
+    <button class="speak-reveal-small" onclick="this.nextElementSibling.style.display='block';this.style.display='none'">See model ↓</button>
+    <div class="speak-model-q" style="display:none">💬 ${ad.models[i]}</div>
+  </div>`).join('');
+
+  return `<div class="speak-ad-card">
+    <div class="speak-ad-header">${ad.title}</div>
+    ${details}
+  </div>
+  <div class="theory-block reveal">
+    <h3>Your 5 questions — given points</h3>
+    <div class="speak-badges" style="margin-bottom:16px">
+      <span class="speak-badge">⏱ 1.5 min preparation</span>
+      <span class="speak-badge">🎙 1.5 min speaking</span>
+    </div>
+    <p style="color:var(--muted);font-size:.875rem;margin-bottom:16px">For each point below, form a Wh‑question (What / Where / How much / How many / When / Who). Then tap to see a model answer.</p>
+    <div class="speak-points">${pointsList}</div>
+  </div>
+  <div class="speak-nav-btns">
+    <button class="btn btn-ghost" onclick="speakAdIdx=(speakAdIdx-1+${DATA_SPEAKING_ADS.length})%${DATA_SPEAKING_ADS.length};document.getElementById('speak-content').innerHTML=renderSpeakContent()">← Previous ad</button>
+    <span style="color:var(--muted);align-self:center;font-size:.875rem">Ad ${speakAdIdx+1} / ${DATA_SPEAKING_ADS.length}</span>
+    <button class="btn btn-primary" onclick="speakAdIdx=(speakAdIdx+1)%${DATA_SPEAKING_ADS.length};document.getElementById('speak-content').innerHTML=renderSpeakContent()">Next ad →</button>
+  </div>`;
+}
+
+function renderSpeakTask3() {
+  const photos = DATA_SPEAKING_PHOTOS.filter(p => p.task === 3);
+  const photo = photos[speakPhotoIdx % photos.length];
+  const steps = photo.steps.map((s, si) => `<div class="speak-step" id="spstep_${si}">
+    <div class="speak-step-header" onclick="toggleStep(${si})">
+      <span class="speak-step-num">${s.step}</span>
+      <span style="color:var(--muted);font-size:.8rem">${s.hint}</span>
+      <span class="speak-step-toggle">+</span>
+    </div>
+    <div class="speak-step-reveal" id="sprev_${si}">💬 ${s.model}</div>
+  </div>`).join('');
+
+  return `<div class="theory-block reveal">
+    <h3>📸 ${photo.label} — describe this scene</h3>
+    <div class="speak-badges" style="margin-bottom:12px">
+      <span class="speak-badge">⏱ 2 min preparation</span>
+      <span class="speak-badge">🎙 2 min speaking</span>
+    </div>
+    <div class="speak-photo-scene">${photo.scene}</div>
+    <p style="color:var(--muted);font-size:.875rem;margin-bottom:12px">Follow the 5-step structure. Click each step to reveal a model answer.</p>
+    <div class="speak-steps">${steps}</div>
+  </div>
+  <div class="speak-nav-btns">
+    <button class="btn btn-ghost" onclick="speakPhotoIdx=(speakPhotoIdx-1+${photos.length})%${photos.length};document.getElementById('speak-content').innerHTML=renderSpeakContent()">← Previous photo</button>
+    <span style="color:var(--muted);align-self:center;font-size:.875rem">Photo ${speakPhotoIdx%photos.length+1} / ${photos.length}</span>
+    <button class="btn btn-primary" onclick="speakPhotoIdx=(speakPhotoIdx+1)%${photos.length};document.getElementById('speak-content').innerHTML=renderSpeakContent()">Next photo →</button>
+  </div>`;
+}
+
+function renderSpeakTask4() {
+  const cp = DATA_SPEAKING_PHOTOS.find(p => p.task === 4);
+  const aspects = cp.aspects.map(a => `<tr>
+    <td class="cmp-aspect">${a.aspect}</td>
+    <td class="cmp-cell">${a.p1}</td>
+    <td class="cmp-cell">${a.p2}</td>
+  </tr>`).join('');
+
+  return `<div class="theory-block reveal">
+    <h3>🔀 Compare two photos</h3>
+    <div class="speak-badges" style="margin-bottom:12px">
+      <span class="speak-badge">⏱ 2 min preparation</span>
+      <span class="speak-badge">🎙 2 min speaking</span>
+    </div>
+    <div class="cmp-grid">
+      <div class="cmp-photo-card"><div class="cmp-photo-label">Photo 1</div><div class="speak-photo-scene">${cp.photo1}</div></div>
+      <div class="cmp-photo-card"><div class="cmp-photo-label">Photo 2</div><div class="speak-photo-scene">${cp.photo2}</div></div>
+    </div>
+    <h4 style="margin:20px 0 12px;font-size:.95rem;font-weight:700">Comparison table</h4>
+    <table class="cmp-table">
+      <thead><tr><th>Aspect</th><th>Photo 1</th><th>Photo 2</th></tr></thead>
+      <tbody>${aspects}</tbody>
+    </table>
+    <button class="btn btn-ghost" style="margin-top:20px" onclick="document.getElementById('cmp-model').style.display='block';this.style.display='none'">Reveal model answer ↓</button>
+    <div id="cmp-model" style="display:none" class="speak-photo-scene" style="margin-top:12px">💬 ${cp.model}</div>
+  </div>`;
+}
+
+window.setSpeakMode = (mode) => {
+  speakMode = mode;
+  document.querySelectorAll('.speak-mode-btn').forEach(b => b.classList.remove('active'));
+  const idx = ['theory','task2','task3','task4'].indexOf(mode);
+  document.querySelectorAll('.speak-mode-btn')[idx]?.classList.add('active');
+  document.getElementById('speak-content').innerHTML = renderSpeakContent();
+};
+window.renderSpeakContent = renderSpeakContent;
+window.toggleStep = (si) => {
+  const rev = document.getElementById(`sprev_${si}`);
+  const tog = document.querySelector(`#spstep_${si} .speak-step-toggle`);
+  const isOpen = rev.style.display === 'block';
+  rev.style.display = isOpen ? 'none' : 'block';
+  if (tog) tog.textContent = isOpen ? '+' : '−';
+};
 
 /* ---- IRREGULAR VERBS ---- */
 let irrState = {};
@@ -554,6 +714,124 @@ window.resetHw = () => {
   saveHw(); navigate('#/homework');
 };
 
+/* ---- EXAM TIMER (English) ---- */
+const EN_TIMER_TOTAL = 180 * 60; // 3 hours in seconds
+let enTimer = { running: false, elapsed: 0, ival: null };
+
+function viewTimer() {
+  return `<div class="view-wrap">
+    <div class="view-header">
+      <button class="back" onclick="navigate('#/')">← Back</button>
+      <span class="kicker">Exam Simulation</span>
+      <h2>EGE English Timer</h2>
+      <p>Full exam — 3 hours (180 minutes)</p>
+    </div>
+    <div class="view-body">
+      <div class="timer-card reveal">
+        <div class="timer-ring-wrap">
+          <svg class="timer-ring" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="100" cy="100" r="86" fill="none" stroke="rgba(59,130,246,.12)" stroke-width="14"/>
+            <circle id="en-timer-arc" cx="100" cy="100" r="86" fill="none" stroke="url(#tg-en)" stroke-width="14"
+              stroke-dasharray="540" stroke-dashoffset="0" stroke-linecap="round"
+              transform="rotate(-90 100 100)" style="transition:stroke-dashoffset .8s"/>
+            <defs>
+              <linearGradient id="tg-en" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#3b82f6"/>
+                <stop offset="100%" stop-color="#8b5cf6"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="timer-display">
+            <div class="timer-hms" id="en-timer-hms">3:00:00</div>
+            <div class="timer-lbl" id="en-timer-lbl">Ready to start</div>
+          </div>
+        </div>
+        <div id="en-timer-elapsed" class="timer-elapsed">0 min elapsed out of 180</div>
+        <div class="timer-controls">
+          <button class="btn btn-primary" id="en-timer-btn" onclick="enTimerToggle()">▶ Start</button>
+          <button class="btn btn-ghost" onclick="enTimerReset()">↺ Reset</button>
+        </div>
+      </div>
+
+      <div class="theory-block reveal" style="margin-top:24px">
+        <h3>Recommended plan</h3>
+        <div class="timer-plan">
+          <div class="tp-row"><span class="tp-time">0:00 – 0:30</span><span class="tp-task">Listening (Tasks 1–9)</span><span class="tp-dur">30 min</span></div>
+          <div class="tp-row"><span class="tp-time">0:30 – 0:50</span><span class="tp-task">Reading (Tasks 10–11)</span><span class="tp-dur">20 min</span></div>
+          <div class="tp-row"><span class="tp-time">0:50 – 1:20</span><span class="tp-task">Grammar, Word Formation, Vocabulary (12–31)</span><span class="tp-dur">30 min</span></div>
+          <div class="tp-row tp-key"><span class="tp-time">1:20 – 2:40</span><span class="tp-task">✍️ Writing — email + opinion essay (37–38)</span><span class="tp-dur">80 min</span></div>
+          <div class="tp-row"><span class="tp-time">2:40 – 3:00</span><span class="tp-task">Review & check all answers</span><span class="tp-dur">20 min</span></div>
+        </div>
+      </div>
+
+      <div class="theory-block reveal">
+        <h3>Time management tips</h3>
+        <ul>
+          <li><strong>Listening is first — focus completely.</strong> You can't replay audio. Underline key words before listening.</li>
+          <li><strong>Grammar & Word Formation are fast:</strong> 1–2 minutes per task is enough with good knowledge.</li>
+          <li><strong>Writing takes the most time and gives the most marks.</strong> Allocate 40 min to the email and 40 min to the essay.</li>
+          <li><strong>Reserve 20 min for review:</strong> check spelling, grammar, and that you answered all 3 questions in the email.</li>
+          <li><strong>Don't spend more than 3 min on one Reading gap.</strong> Move on and come back.</li>
+        </ul>
+      </div>
+    </div>
+  </div>`;
+}
+
+window.enTimerToggle = () => {
+  if (enTimer.running) {
+    clearInterval(enTimer.ival);
+    enTimer.running = false;
+    const btn = document.getElementById('en-timer-btn');
+    if (btn) btn.textContent = '▶ Continue';
+  } else {
+    enTimer.running = true;
+    const btn = document.getElementById('en-timer-btn');
+    if (btn) btn.textContent = '⏸ Pause';
+    enTimer.ival = setInterval(() => {
+      enTimer.elapsed++;
+      const rem = Math.max(0, EN_TIMER_TOTAL - enTimer.elapsed);
+      const h = Math.floor(rem / 3600);
+      const m = Math.floor((rem % 3600) / 60);
+      const s = rem % 60;
+      const hmsEl = document.getElementById('en-timer-hms');
+      const lblEl = document.getElementById('en-timer-lbl');
+      const arcEl = document.getElementById('en-timer-arc');
+      const elEl  = document.getElementById('en-timer-elapsed');
+      if (!hmsEl) { clearInterval(enTimer.ival); enTimer.running = false; return; }
+      hmsEl.textContent = `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      arcEl.style.strokeDashoffset = 540 * (1 - enTimer.elapsed / EN_TIMER_TOTAL);
+      const em = Math.floor(enTimer.elapsed / 60);
+      elEl.textContent = `${em} min elapsed out of 180`;
+      if (em < 30)  lblEl.textContent = '🎧 Listening';
+      else if (em < 50)  lblEl.textContent = '📖 Reading';
+      else if (em < 80)  lblEl.textContent = '🧩 Grammar / Vocab';
+      else if (em < 160) lblEl.textContent = '✍️ Writing';
+      else           lblEl.textContent = '✅ Review';
+      if (rem === 0) {
+        clearInterval(enTimer.ival); enTimer.running = false;
+        lblEl.textContent = '⏰ Time is up!';
+        toast('Exam time is over!');
+      }
+    }, 1000);
+  }
+};
+
+window.enTimerReset = () => {
+  clearInterval(enTimer.ival);
+  enTimer = { running: false, elapsed: 0, ival: null };
+  const hmsEl = document.getElementById('en-timer-hms');
+  const lblEl = document.getElementById('en-timer-lbl');
+  const arcEl = document.getElementById('en-timer-arc');
+  const elEl  = document.getElementById('en-timer-elapsed');
+  const btn   = document.getElementById('en-timer-btn');
+  if (hmsEl) hmsEl.textContent = '3:00:00';
+  if (lblEl) lblEl.textContent = 'Ready to start';
+  if (arcEl) arcEl.style.strokeDashoffset = '0';
+  if (elEl)  elEl.textContent = '0 min elapsed out of 180';
+  if (btn)   btn.textContent = '▶ Start';
+};
+
 /* =================== ROUTER =================== */
 function render() {
   const hash = location.hash || '#/';
@@ -569,6 +847,7 @@ function render() {
     '#/writing':   viewWriting,
     '#/speaking':  viewSpeaking,
     '#/irregular': viewIrregular,
+    '#/timer':     viewTimer,
     '#/homework':  viewHomework,
   };
 

@@ -8,6 +8,16 @@ const HW_DONE = JSON.parse(localStorage.getItem('ru_ege_hw') || '{}');
 const save = () => localStorage.setItem('ru_ege_prog', JSON.stringify(PROG));
 const saveHw = () => localStorage.setItem('ru_ege_hw', JSON.stringify(HW_DONE));
 
+/* Merge extra practice examples into RU_TASKS */
+function mergeExtra() {
+  if (typeof RU_EXTRA === 'undefined') return;
+  Object.entries(RU_EXTRA).forEach(([idxStr, items]) => {
+    const idx = parseInt(idxStr);
+    if (RU_TASKS[idx]) RU_TASKS[idx].practice.push(...items);
+  });
+}
+mergeExtra();
+
 /* ---- utils ---- */
 function toast(msg) {
   let t = document.querySelector('.toast');
@@ -27,7 +37,8 @@ function scrollTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
 /* ---- nav ---- */
 const NAV = [
   ['#/', 'Главная'], ['#/tasks', 'Задания'], ['#/stress', 'Ударения'],
-  ['#/paronims', 'Паронимы'], ['#/homework', 'Домашнее'], ['#/essay', 'Сочинение'], ['#/resources', 'Материалы']
+  ['#/paronims', 'Паронимы'], ['#/homework', 'Домашнее'], ['#/essay', 'Сочинение'],
+  ['#/timer', 'Таймер'], ['#/resources', 'Материалы']
 ];
 function buildNav() {
   const h = document.getElementById('nav-links');
@@ -519,6 +530,121 @@ function viewResources() {
   </div>`;
 }
 
+/* ---- EXAM TIMER ---- */
+const RU_TIMER_TOTAL = 210 * 60; // 3 ч 30 мин в секундах
+let ruTimer = { running: false, elapsed: 0, ival: null };
+
+function viewTimer() {
+  return `<div class="task-view">
+    <div class="task-header">
+      <div class="kicker">Симуляция экзамена</div>
+      <h2>Таймер ЕГЭ · Русский язык</h2>
+      <p>Полный вариант — 3 часа 30 минут (210 минут)</p>
+    </div>
+    <div class="task-body">
+      <div class="timer-card reveal">
+        <div class="timer-ring-wrap">
+          <svg class="timer-ring" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="100" cy="100" r="86" fill="none" stroke="rgba(139,92,246,.12)" stroke-width="14"/>
+            <circle id="timer-arc" cx="100" cy="100" r="86" fill="none" stroke="url(#tg-ru)" stroke-width="14"
+              stroke-dasharray="540" stroke-dashoffset="0" stroke-linecap="round"
+              transform="rotate(-90 100 100)" style="transition:stroke-dashoffset .8s"/>
+            <defs>
+              <linearGradient id="tg-ru" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#8b5cf6"/>
+                <stop offset="100%" stop-color="#d946ef"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div class="timer-display">
+            <div class="timer-hms" id="timer-hms">3:30:00</div>
+            <div class="timer-lbl" id="timer-lbl">Готов к старту</div>
+          </div>
+        </div>
+        <div id="timer-elapsed" class="timer-elapsed">0 мин прошло из 210</div>
+        <div class="timer-controls">
+          <button class="btn btn-primary" id="timer-btn" onclick="timerToggle()">▶ Старт</button>
+          <button class="btn btn-ghost" onclick="timerReset()">↺ Сброс</button>
+        </div>
+      </div>
+
+      <div class="theory-block reveal" style="margin-top:24px">
+        <h3>Рекомендуемый план</h3>
+        <div class="timer-plan">
+          <div class="tp-row"><span class="tp-time">0:00 – 0:30</span><span class="tp-task">Задания 1–3 (работа с текстом)</span><span class="tp-dur">30 мин</span></div>
+          <div class="tp-row"><span class="tp-time">0:30 – 1:30</span><span class="tp-task">Задания 4–26 (тест, орфография, пунктуация)</span><span class="tp-dur">60 мин</span></div>
+          <div class="tp-row tp-key"><span class="tp-time">1:30 – 3:00</span><span class="tp-task">✍️ Задание 27 — сочинение</span><span class="tp-dur">90 мин</span></div>
+          <div class="tp-row"><span class="tp-time">3:00 – 3:30</span><span class="tp-task">Проверка, исправление ошибок</span><span class="tp-dur">30 мин</span></div>
+        </div>
+      </div>
+
+      <div class="theory-block reveal">
+        <h3>Тайм-менеджмент на ЕГЭ</h3>
+        <ul>
+          <li><strong>Не зависай на одном задании:</strong> поставь ответ наугад и иди дальше — вернёшься если останется время.</li>
+          <li><strong>Начни с лёгкого:</strong> задания 4, 5 (ударения, паронимы) — быстрые баллы, подними уверенность.</li>
+          <li><strong>Оставь 90 мин на сочинение:</strong> оно даёт 24 балла из 54 — это почти половина!</li>
+          <li><strong>Последние 30 мин — только проверка:</strong> пунктуация, Н/НН, НЕ — самые частые ошибки.</li>
+          <li><strong>Не торопись в начале:</strong> ошибка в задании 8 стоит столько же, сколько в задании 4.</li>
+        </ul>
+      </div>
+    </div>
+  </div>`;
+}
+
+window.timerToggle = () => {
+  if (ruTimer.running) {
+    clearInterval(ruTimer.ival);
+    ruTimer.running = false;
+    const btn = document.getElementById('timer-btn');
+    if (btn) btn.textContent = '▶ Продолжить';
+  } else {
+    ruTimer.running = true;
+    const btn = document.getElementById('timer-btn');
+    if (btn) btn.textContent = '⏸ Пауза';
+    ruTimer.ival = setInterval(() => {
+      ruTimer.elapsed++;
+      const rem = Math.max(0, RU_TIMER_TOTAL - ruTimer.elapsed);
+      const h = Math.floor(rem / 3600);
+      const m = Math.floor((rem % 3600) / 60);
+      const s = rem % 60;
+      const hmsEl = document.getElementById('timer-hms');
+      const lblEl = document.getElementById('timer-lbl');
+      const arcEl = document.getElementById('timer-arc');
+      const elEl  = document.getElementById('timer-elapsed');
+      if (!hmsEl) { clearInterval(ruTimer.ival); ruTimer.running = false; return; }
+      hmsEl.textContent = `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      arcEl.style.strokeDashoffset = 540 * (1 - ruTimer.elapsed / RU_TIMER_TOTAL);
+      const em = Math.floor(ruTimer.elapsed / 60);
+      elEl.textContent = `${em} мин прошло из 210`;
+      if (em < 30)  lblEl.textContent = 'Задания 1–3';
+      else if (em < 90)  lblEl.textContent = 'Задания 4–26';
+      else if (em < 180) lblEl.textContent = '✍️ Сочинение';
+      else           lblEl.textContent = '✅ Проверка';
+      if (rem === 0) {
+        clearInterval(ruTimer.ival); ruTimer.running = false;
+        lblEl.textContent = '⏰ Время вышло!';
+        toast('Время экзамена закончилось!');
+      }
+    }, 1000);
+  }
+};
+
+window.timerReset = () => {
+  clearInterval(ruTimer.ival);
+  ruTimer = { running: false, elapsed: 0, ival: null };
+  const hmsEl = document.getElementById('timer-hms');
+  const lblEl = document.getElementById('timer-lbl');
+  const arcEl = document.getElementById('timer-arc');
+  const elEl  = document.getElementById('timer-elapsed');
+  const btn   = document.getElementById('timer-btn');
+  if (hmsEl) hmsEl.textContent = '3:30:00';
+  if (lblEl) lblEl.textContent = 'Готов к старту';
+  if (arcEl) arcEl.style.strokeDashoffset = '0';
+  if (elEl)  elEl.textContent = '0 мин прошло из 210';
+  if (btn)   btn.textContent = '▶ Старт';
+};
+
 /* =================== ROUTER =================== */
 function navigate(hash) {
   location.hash = hash;
@@ -544,6 +670,7 @@ function render() {
     '#/paronims': viewParonims,
     '#/homework': viewHomework,
     '#/essay':    viewEssay,
+    '#/timer':    viewTimer,
     '#/resources':viewResources,
   };
 
