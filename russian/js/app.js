@@ -2,6 +2,8 @@
    РУССКИЙ ЕГЭ · app.js — SPA с hash-routing
    ============================================================ */
 
+const AI_ESSAY_ENDPOINT = ''; // Cloudflare Worker URL — задать позже
+
 const app = document.getElementById('app');
 const PROG = JSON.parse(localStorage.getItem('ru_ege_prog') || '{}');
 const HW_DONE = JSON.parse(localStorage.getItem('ru_ege_hw') || '{}');
@@ -38,7 +40,7 @@ function scrollTop() { window.scrollTo({ top: 0, behavior: 'smooth' }); }
 const NAV = [
   ['#/', 'Главная'], ['#/tasks', 'Задания'], ['#/stress', 'Ударения'],
   ['#/paronims', 'Паронимы'], ['#/homework', 'Домашнее'], ['#/essay', 'Сочинение'],
-  ['#/timer', 'Таймер'], ['#/resources', 'Материалы']
+  ['#/ai-essay', '🤖 ИИ-Эссе'], ['#/timer', 'Таймер'], ['#/resources', 'Материалы']
 ];
 function buildNav() {
   const h = document.getElementById('nav-links');
@@ -134,9 +136,15 @@ function viewTask(idx) {
   if (!t) return viewTasks();
   if (!PROG[idx]) PROG[idx] = { done: 0 };
 
-  const theory = t.theory.map(item =>
-    `<li>${item.replace(/«(.+?)»/g, '«<em>$1</em>»')}</li>`
-  ).join('');
+  const maxScore = t.maxScore || 1;
+  const exCount  = t.practice.length;
+
+  const theory = t.theory.map(item => {
+    const isWarn = item.startsWith('!');
+    const text = isWarn ? item.slice(1).trim() : item;
+    const cls  = isWarn ? 'theory-warn' : '';
+    return `<li class="${cls}">${text.replace(/«(.+?)»/g, '«<em>$1</em>»')}</li>`;
+  }).join('');
 
   const practices = t.practice.map((p, pi) => buildExCard(p, idx, pi)).join('');
 
@@ -145,6 +153,11 @@ function viewTask(idx) {
       <button class="back" onclick="navigate('#/tasks')">← Все задания</button>
       <div class="tnum">Задание ${t.num}</div>
       <h2>${t.title}</h2>
+      <div class="task-meta">
+        <span class="meta-chip">${maxScore} балл${maxScore === 1 ? '' : maxScore < 5 ? 'а' : 'ов'}</span>
+        <span class="meta-chip mc-green">ЕГЭ 2026</span>
+        <span class="meta-chip mc-gold">${exCount} пример${exCount === 1 ? '' : exCount < 5 ? 'а' : 'ов'}</span>
+      </div>
       <p>${t.desc}</p>
     </div>
     <div class="task-body">
@@ -235,7 +248,7 @@ function viewStress() {
         </div>
         <div class="progress-bar" style="margin-top:20px"><i id="sw-bar"></i></div>
         <div style="margin-top:14px;color:var(--muted);font-size:14px;text-align:center">
-          Правильных: <span id="sw-score" style="color:var(--violet-bright);font-weight:700">0</span> / <span id="sw-total2">0</span>
+          Правильных: <span id="sw-score" style="color:var(--brown-2);font-weight:700">0</span> / <span id="sw-total2">0</span>
         </div>
       </div>
 
@@ -310,7 +323,7 @@ function stressNext() {
     el.innerHTML = `<div style="text-align:center;padding:20px">
       <div style="font-size:3rem;margin-bottom:16px">🎉</div>
       <h3 style="font-size:1.4rem;font-weight:800;margin-bottom:8px">Раунд завершён!</h3>
-      <p style="color:var(--muted);margin-bottom:24px">Результат: <strong style="color:var(--violet-bright)">${stressState.score} / ${stressState.idxs.length}</strong></p>
+      <p style="color:var(--muted);margin-bottom:24px">Результат: <strong style="color:var(--brown-2)">${stressState.score} / ${stressState.idxs.length}</strong></p>
       <button class="btn btn-primary" onclick="stressInit()">Новый раунд →</button>
     </div>`;
     return;
@@ -341,7 +354,6 @@ function viewParonims() {
       <p>${p.desc}</p>
     </div>`).join('');
 
-  /* paro quiz */
   const quiz = buildParoQuiz();
 
   return `<div class="task-view">
@@ -376,7 +388,7 @@ function buildParoQuiz() {
   const q = PARO_QUIZ[paroIdx];
   return `<div class="q" style="margin-bottom:16px">${q.q}</div>
     <div class="opts">
-      ${q.opts.map((o, i) => `<button class="opt" onclick="checkParo(this,${i},${q.answer},'${q.ex.replace(/'/g,"\\'")}',${PARO_QUIZ.length})">${o}</button>`).join('')}
+      ${q.opts.map((o, i) => `<button class="opt" onclick="checkParo(this,${i},${q.answer},'${q.ex.replace(/'/g,"\\'")}',${ PARO_QUIZ.length})">${o}</button>`).join('')}
     </div>
     <div class="explain" id="paro-explain"></div>
     <button class="btn btn-ghost" id="paro-next" style="margin-top:16px;display:none" onclick="nextParoQuiz()">Следующий →</button>`;
@@ -425,7 +437,7 @@ function viewHomework() {
     <div class="task-header">
       <div class="kicker">Домашние задания</div>
       <h2>Задания по темам</h2>
-      <p>Отмечай выполненное — прогресс сохраняется в браузере. Общий прогресс: <strong style="color:var(--violet-bright)">${totalDone}/${totalItems} (${totalPct}%)</strong></p>
+      <p>Отмечай выполненное — прогресс сохраняется в браузере. Общий прогресс: <strong style="color:var(--brown-2)">${totalDone}/${totalItems} (${totalPct}%)</strong></p>
     </div>
     <div class="task-body">
       <div class="hw-topics">${topics}</div>
@@ -493,8 +505,187 @@ function viewEssay() {
           <li>Нет пересказа вместо комментария</li>
         </ul>
       </div>
+      <div style="text-align:center;margin-top:24px">
+        <a href="#/ai-essay" class="btn btn-primary">🤖 Проверить эссе с ИИ →</a>
+      </div>
     </div>
   </div>`;
+}
+
+/* ---- AI ESSAY CHECKER ---- */
+function getCriterionName(key) {
+  const names = {
+    k1:  'К1 · Формулировка проблемы',
+    k2:  'К2 · Комментарий к проблеме',
+    k3:  'К3 · Позиция автора',
+    k4:  'К4 · Отношение к позиции автора',
+    k5:  'К5 · Смысловая цельность и связность',
+    k6:  'К6 · Точность и выразительность речи',
+    k7:  'К7 · Орфографические нормы',
+    k8:  'К8 · Пунктуационные нормы',
+    k9:  'К9 · Грамматические нормы',
+    k10: 'К10 · Речевые нормы',
+    k11: 'К11 · Этические нормы',
+    k12: 'К12 · Фактологическая точность',
+  };
+  return names[key] || key.toUpperCase();
+}
+
+const CRITERIA_MAX = { k1:1, k2:6, k3:1, k4:1, k5:2, k6:2, k7:3, k8:3, k9:2, k10:2, k11:1, k12:1 };
+
+function getScoreComment(pct) {
+  if (pct >= 100) return '✓ Максимум!';
+  if (pct >= 75)  return '👍 Хорошо';
+  if (pct >= 50)  return '📝 Средне';
+  return '⚠ Доработать';
+}
+
+function viewAiEssay() {
+  const criteriaRows = Object.entries(CRITERIA_MAX).map(([k, max]) =>
+    `<tr><td>${getCriterionName(k)}</td><td style="text-align:center;font-weight:700">${max}</td></tr>`
+  ).join('');
+
+  return `<div class="task-view">
+    <div class="task-header">
+      <button class="back" onclick="navigate('#/essay')">← Шаблон сочинения</button>
+      <div class="kicker">ИИ-проверка · Задание 27</div>
+      <h2>Проверка эссе по критериям ЕГЭ</h2>
+      <p>Вставь своё сочинение — ИИ оценит его по всем 12 критериям и даст рекомендации.</p>
+    </div>
+    <div class="task-body">
+
+      <div class="essay-form reveal">
+        <label style="font-weight:700;display:block;margin-bottom:6px">Исходный текст <span style="color:var(--muted);font-weight:400">(необязательно)</span></label>
+        <textarea id="essay-source" class="essay-textarea" style="min-height:120px" placeholder="Вставь сюда исходный текст, если хочешь более точную проверку К1–К4…"></textarea>
+
+        <label style="font-weight:700;display:block;margin:20px 0 6px">Твоё сочинение <span style="color:var(--red, #c0392b);font-size:.9rem">*</span></label>
+        <textarea id="essay-text" class="essay-textarea" placeholder="Вставь или напиши сочинение (минимум 150 слов)…" oninput="updateEssayCounter()"></textarea>
+        <div class="char-count" id="essay-counter">0 слов · 0 символов</div>
+
+        <button class="btn btn-primary" style="margin-top:20px;width:100%" onclick="checkEssay()">🤖 Проверить эссе →</button>
+      </div>
+
+      <div id="essay-loading" class="ai-loading" style="display:none">
+        <div class="spin"></div>
+        <p>ИИ анализирует эссе по критериям ЕГЭ…<br><small style="color:var(--muted)">Обычно 10–20 секунд</small></p>
+      </div>
+
+      <div id="essay-error" class="ai-error" style="display:none"></div>
+
+      <div id="essay-results" style="display:none"></div>
+
+      <div class="theory-block reveal" style="margin-top:32px">
+        <h3>Критерии оценивания — максимум 25 баллов</h3>
+        <table style="width:100%;border-collapse:collapse;font-size:.9rem">
+          <thead><tr style="border-bottom:2px solid var(--caramel)"><th style="text-align:left;padding:6px 4px">Критерий</th><th style="text-align:center;padding:6px 4px">Макс.</th></tr></thead>
+          <tbody>${criteriaRows}</tbody>
+          <tfoot><tr style="border-top:2px solid var(--caramel);font-weight:800"><td style="padding:8px 4px">Итого</td><td style="text-align:center;padding:8px 4px">25</td></tr></tfoot>
+        </table>
+      </div>
+
+    </div>
+  </div>`;
+}
+
+window.updateEssayCounter = () => {
+  const txt = (document.getElementById('essay-text') || {}).value || '';
+  const words = txt.trim() ? txt.trim().split(/\s+/).length : 0;
+  const chars = txt.length;
+  const el = document.getElementById('essay-counter');
+  if (el) {
+    el.textContent = `${words} слов · ${chars} символов`;
+    el.style.color = words < 150 ? 'var(--red, #c0392b)' : 'var(--muted)';
+  }
+};
+
+window.checkEssay = async () => {
+  const sourceEl = document.getElementById('essay-source');
+  const textEl   = document.getElementById('essay-text');
+  const loading  = document.getElementById('essay-loading');
+  const errorEl  = document.getElementById('essay-error');
+  const results  = document.getElementById('essay-results');
+
+  const sourceText = (sourceEl ? sourceEl.value : '').trim();
+  const essayText  = (textEl   ? textEl.value   : '').trim();
+
+  errorEl.style.display = 'none';
+  results.style.display = 'none';
+
+  if (!essayText || essayText.split(/\s+/).length < 150) {
+    errorEl.textContent = '⚠ Сочинение должно содержать не менее 150 слов.';
+    errorEl.style.display = '';
+    return;
+  }
+
+  if (!AI_ESSAY_ENDPOINT) {
+    errorEl.innerHTML = '🔧 Сервис проверки ещё не настроен. Скоро добавим — следи за обновлениями!';
+    errorEl.style.display = '';
+    return;
+  }
+
+  loading.style.display = '';
+  try {
+    const resp = await fetch(AI_ESSAY_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ source_text: sourceText, essay: essayText }),
+    });
+    if (!resp.ok) throw new Error(`Ошибка сервера: ${resp.status}`);
+    const data = await resp.json();
+    loading.style.display = 'none';
+    renderEssayResults(data);
+  } catch (e) {
+    loading.style.display = 'none';
+    errorEl.textContent = `❌ ${e.message}`;
+    errorEl.style.display = '';
+  }
+};
+
+function renderEssayResults(data) {
+  const results = document.getElementById('essay-results');
+  if (!results) return;
+
+  const total    = data.total_score ?? 0;
+  const maxTotal = data.max_score   ?? 25;
+  const pct      = Math.round(total / maxTotal * 100);
+  const comment  = getScoreComment(pct);
+
+  const criteriaHtml = Object.entries(CRITERIA_MAX).map(([k, max]) => {
+    const crit  = (data.criteria || {})[k] || {};
+    const score = crit.score ?? 0;
+    const cpct  = Math.round(score / max * 100);
+    const barCls = cpct >= 100 ? 'c-full' : cpct >= 50 ? 'c-partial' : 'c-low';
+    return `<div class="criterion reveal">
+      <div class="crit-head">
+        <span class="crit-name">${getCriterionName(k)}</span>
+        <span class="crit-score">${score} / ${max}</span>
+      </div>
+      <div class="criterion-bar"><div class="criterion-bar ${barCls}" style="width:${cpct}%"></div></div>
+      ${crit.comment ? `<div class="crit-comment">${crit.comment}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  const recs = (data.recommendations || []).map(r => `<li>${r}</li>`).join('');
+
+  results.innerHTML = `
+    <div class="score-total-card reveal">
+      <div class="score-total-label">Итоговый балл</div>
+      <div class="score-total-num">${total}<span>/${maxTotal}</span></div>
+      <div class="score-total-pct">${pct}% — ${comment}</div>
+    </div>
+
+    <div class="criteria-grid">${criteriaHtml}</div>
+
+    ${data.summary ? `<div class="ai-summary-block reveal"><h3>Общая оценка</h3><p>${data.summary}</p></div>` : ''}
+
+    ${recs ? `<div class="ai-summary-block reveal">
+      <h3>Рекомендации</h3>
+      <ul class="recs-list">${recs}</ul>
+    </div>` : ''}
+  `;
+  results.style.display = '';
+  reveal();
+  results.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 /* ---- RESOURCES ---- */
@@ -531,7 +722,7 @@ function viewResources() {
 }
 
 /* ---- EXAM TIMER ---- */
-const RU_TIMER_TOTAL = 210 * 60; // 3 ч 30 мин в секундах
+const RU_TIMER_TOTAL = 210 * 60;
 let ruTimer = { running: false, elapsed: 0, ival: null };
 
 function viewTimer() {
@@ -545,14 +736,14 @@ function viewTimer() {
       <div class="timer-card reveal">
         <div class="timer-ring-wrap">
           <svg class="timer-ring" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="100" cy="100" r="86" fill="none" stroke="rgba(139,92,246,.12)" stroke-width="14"/>
+            <circle cx="100" cy="100" r="86" fill="none" stroke="rgba(107,66,38,.12)" stroke-width="14"/>
             <circle id="timer-arc" cx="100" cy="100" r="86" fill="none" stroke="url(#tg-ru)" stroke-width="14"
               stroke-dasharray="540" stroke-dashoffset="0" stroke-linecap="round"
               transform="rotate(-90 100 100)" style="transition:stroke-dashoffset .8s"/>
             <defs>
               <linearGradient id="tg-ru" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stop-color="#8b5cf6"/>
-                <stop offset="100%" stop-color="#d946ef"/>
+                <stop offset="0%" stop-color="#6B4226"/>
+                <stop offset="100%" stop-color="#C49A6C"/>
               </linearGradient>
             </defs>
           </svg>
@@ -664,14 +855,15 @@ function render() {
   }
 
   const views = {
-    '#/':         viewHome,
-    '#/tasks':    viewTasks,
-    '#/stress':   viewStress,
-    '#/paronims': viewParonims,
-    '#/homework': viewHomework,
-    '#/essay':    viewEssay,
-    '#/timer':    viewTimer,
-    '#/resources':viewResources,
+    '#/':          viewHome,
+    '#/tasks':     viewTasks,
+    '#/stress':    viewStress,
+    '#/paronims':  viewParonims,
+    '#/homework':  viewHomework,
+    '#/essay':     viewEssay,
+    '#/ai-essay':  viewAiEssay,
+    '#/timer':     viewTimer,
+    '#/resources': viewResources,
   };
 
   const fn = views[hash] || viewHome;
